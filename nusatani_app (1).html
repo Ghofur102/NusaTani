@@ -1,0 +1,1327 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NusaTani — Solusi Digital Gabah Presisi Hulu-ke-Hilir</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Inter Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        nt: {
+                            50: '#F0FDF4',
+                            100: '#DCFCE7',
+                            200: '#BBF7D0',
+                            500: '#16A34A',
+                            600: '#15803D',
+                            700: '#166534',
+                            800: '#14532D',
+                            900: '#064E3B',
+                            amber: '#D97706',
+                            gold: '#B45309'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0A120E;
+            color: #1F2937;
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fadeIn {
+            animation: fadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+        .animate-slideUp {
+            animation: slideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        @keyframes pulseGlow {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.5); }
+            50% { box-shadow: 0 0 0 10px rgba(22, 163, 74, 0); }
+        }
+        .pulse-glow {
+            animation: pulseGlow 2s infinite;
+        }
+        .scan-line {
+            height: 3px;
+            background: linear-gradient(90deg, transparent, #22c55e, transparent);
+            position: absolute;
+            width: 100%;
+            animation: scan 2s linear infinite;
+        }
+        @keyframes scan {
+            0% { top: 0%; }
+            100% { top: 100%; }
+        }
+    </style>
+</head>
+<body class="bg-[#0A120E] min-h-screen flex items-center justify-center p-0 sm:py-4 sm:px-4">
+
+    <!-- Mobile Device Simulator Container -->
+    <div id="app-container" class="w-full sm:max-w-[430px] h-screen sm:h-[890px] bg-[#F7FAF8] sm:rounded-[40px] shadow-2xl flex flex-col relative overflow-hidden border-0 sm:border-[8px] sm:border-[#14261C]">
+
+        <!-- Top Status Bar -->
+        <div class="bg-[#14532D] text-white px-5 py-2 flex justify-between items-center text-xs select-none z-50 shrink-0">
+            <div class="flex items-center space-x-2">
+                <span class="font-extrabold tracking-wide flex items-center gap-1.5 text-emerald-300">
+                    <i class="fa-solid fa-wheat-awn text-emerald-400"></i> NusaTani
+                </span>
+                <!-- Switch Language Button (Indo / Jawa) -->
+                <button onclick="toggleLanguage()" id="lang-btn" class="bg-emerald-900/90 text-emerald-200 text-[10px] px-2 py-0.5 rounded-full font-bold border border-emerald-600/50 hover:bg-emerald-800 transition-all">
+                    🌐 Jawa
+                </button>
+            </div>
+            <div class="flex items-center space-x-2">
+                <span id="network-label" class="flex items-center text-[10px] bg-emerald-800 px-2 py-0.5 rounded-full font-bold text-emerald-200">
+                    <i class="fa-solid fa-shield-halved text-emerald-400 mr-1"></i> Sinyal Stabil
+                </span>
+                <span id="clock-time" class="font-mono font-bold">09:41</span>
+            </div>
+        </div>
+
+        <!-- Main Dynamic Viewport -->
+        <div id="main-viewport" class="flex-1 overflow-y-auto pb-24 relative bg-[#F7FAF8] no-scrollbar">
+            <!-- Dynamically rendered via JS -->
+        </div>
+
+        <!-- Global Bottom Navigation Bar (5 Modul Utama) -->
+        <nav id="bottom-nav" class="absolute bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-emerald-900/10 px-1 py-2 flex justify-around items-center z-40 shadow-2xl">
+            <button onclick="switchTab('beranda')" id="nav-beranda" class="flex flex-col items-center text-nt-600 font-bold transition-all">
+                <i class="fa-solid fa-house text-lg mb-0.5"></i>
+                <span id="label-nav-beranda" class="text-[9px]">Beranda</span>
+            </button>
+            <button onclick="switchTab('kualitas')" id="nav-kualitas" class="flex flex-col items-center text-gray-400 hover:text-nt-600 transition-all">
+                <i class="fa-solid fa-camera text-lg mb-0.5"></i>
+                <span id="label-nav-kualitas" class="text-[9px]">Uji Gabah</span>
+            </button>
+            <button onclick="switchTab('pasar')" id="nav-pasar" class="flex flex-col items-center text-gray-400 hover:text-nt-600 transition-all">
+                <i class="fa-solid fa-chart-line text-lg mb-0.5"></i>
+                <span id="label-nav-pasar" class="text-[9px]">Cek Harga</span>
+            </button>
+            <button onclick="switchTab('modal')" id="nav-modal" class="flex flex-col items-center text-gray-400 hover:text-nt-600 transition-all relative">
+                <i class="fa-solid fa-hand-holding-dollar text-lg mb-0.5"></i>
+                <span id="label-nav-modal" class="text-[9px]">Modal Tanam</span>
+                <span class="absolute top-0 right-2 w-2 h-2 bg-amber-500 rounded-full animate-ping"></span>
+            </button>
+            <button onclick="switchTab('lahan')" id="nav-lahan" class="flex flex-col items-center text-gray-400 hover:text-nt-600 transition-all">
+                <i class="fa-solid fa-eye text-lg mb-0.5"></i>
+                <span id="label-nav-lahan" class="text-[9px]">Pindai Lahan</span>
+            </button>
+        </nav>
+
+        <!-- Floating AI Assistant Button -->
+        <div id="floating-ai-btn" class="absolute bottom-20 right-4 z-30">
+            <button onclick="openTanyaNusaTani()" class="bg-[#15803D] text-white p-3.5 rounded-full shadow-2xl flex items-center justify-center hover:bg-[#166534] transition-transform active:scale-95 border-2 border-emerald-300 pulse-glow">
+                <i class="fa-solid fa-robot text-xl"></i>
+            </button>
+        </div>
+
+        <!-- Toast Notifications -->
+        <div id="toast-container" class="absolute top-12 left-4 right-4 z-50 pointer-events-none flex flex-col space-y-2"></div>
+
+        <!-- Modal Dialog Container -->
+        <div id="modal-container" class="absolute inset-0 bg-black/65 z-50 hidden flex items-end sm:items-center justify-center p-0 sm:p-4 backdrop-blur-sm transition-opacity"></div>
+
+    </div>
+
+    <script>
+        // Dictionary Text Multilingual Complete (Indonesia <-> Jawa)
+        const i18n = {
+            id: {
+                langName: '🌐 Jawa',
+                signal: 'Sinyal Stabil',
+                navBeranda: 'Beranda',
+                navKualitas: 'Uji Mutu Gabah',
+                navPasar: 'Cek Harga Pasar',
+                navModal: 'Modal Tanam',
+                navLahan: 'Pindai Lahan',
+                greeting: 'Selamat Datang, Bapak / Ibu Tani',
+                antiTengkulakTitle: 'Bebas Jeratan Tengkulak & Ijon',
+                antiTengkulakDesc: 'Gabah ditimbang digital, harga jujur berbasis data presisi, bebas potongan sepihak.',
+                btnModalDirect: 'Jelajahi Modal Tanam Bebas Tengkulak',
+                modul1Name: '1. Kelayakan Modal Tanam Jujur',
+                modul1Detail: 'Penilaian AI Random Forest • Bebas Bunga Ijon',
+                modul2Name: '2. Pindai Lahan & Hama Sawah',
+                modul2Detail: 'Kamera Sawah Otomatis YOLO_ECO • Estimasi Panen',
+                modul3Name: '3. Prakiraan Harga Pasar Wajar',
+                modul3Detail: 'Prediksi XGBoost • Akses Pesan WA & SMS',
+                modul4Name: '4. Uji Mutu & Kadar Air Gabah',
+                modul4Detail: 'Kamera Otomatis SVM • Bebas Potongan Sepihak',
+                offtakerTitle: 'Akses Pembeli Resmi Non-Tengkulak',
+                offtakerBadge: 'Verifikasi Digital',
+                offtakerSub: 'Pembelian Standar HPP Pemerintah',
+                offtakerCond: 'Syarat: Kadar Air ≤ 14%',
+                btnSellDirect: 'Jual Langsung',
+                researchTitle: 'Pusat Pengembangan Lanjutan & Ekspor',
+                researchDesc: 'Standar mutu kadar air ekspor komoditas, sertifikat sawah ramah lingkungan, dan jaringan logistik tanpa perantara.',
+                btnResearch: 'Pelajari Pengembangan Lanjutan',
+                
+                // Modal Tanam
+                modalHeading: 'Kelayakan Modal Tanam & Sambung Pemegang Dana',
+                modalSub: 'Penilaian Otomatis Tanpa Jeratan Tengkulak & Ijon',
+                scoreTitle: 'Tingkat Kelayakan Modal Petani:',
+                scoreGrade: 'Sangat Layak (Peringkat Utama)',
+                plafonTitle: 'Batas Plafon Modal Disetujui:',
+                partnerTitle: 'Rekomendasi Pemegang Modal Resmi (Langsung WA)',
+                partnerBadge: 'Terverifikasi Resmi',
+                btnApplyWA: 'Ajukan Modal via WA',
+
+                // Uji Mutu
+                qualityHeading: 'Uji Mutu & Kadar Air Gabah Anti-Potongan',
+                qualitySub: 'Pindaian Kamera Otomatis Mencegah Potongan Timbangan Sepihak',
+                scanningText: 'Memindai Bulir Gabah...',
+                btnScanNow: 'Potret Sampel Gabah Sekarang',
+                certTitle: 'Sertifikat Mutu Digital Terakhir',
+                moistureTitle: 'Kadar Air Gabah:',
+                moistureNote: 'Ideal Penggilingan',
+                hampaTitle: 'Hampa / Kotoran:',
+                hampaNote: 'Bersih Maksimal',
+                gradingTitle: 'Peringkat Mutu:',
+                dockingTitle: 'Perlindungan Potongan:',
+                priceTitle: 'Harga Patokan Wajar:',
+                historyTitle: 'Riwayat Uji Mutu Gabah Per Lahan',
+                chooseLand: 'Pilih Lahan Sawah:',
+
+                // Cek Harga
+                priceHeading: 'Prakiraan Harga Pasar Wajar',
+                priceSub: 'Prediksi Tren Harga & Notifikasi WA/SMS',
+                adviceTitle: 'Saran Waktu Jual Terbaik:',
+                adviceAction: 'TAHAN STOK (3 - 5 HARI)',
+                adviceDesc: 'Diperkirakan ada kenaikan harga gabah minggu depan di wilayah Anda.',
+                priceListTitle: 'Daftar Prediksi Harga Gabah & Beras',
+                adviceTip: '💡 Saran Petani:',
+
+                // Pindai Lahan
+                lahanHeading: 'Pindai Lahan & Kesehatan Sawah',
+                lahanSub: 'Deteksi Kesehatan Tanaman & Estimasi Tonase Panen',
+                statusReady: 'Tanaman Subur & Siap Panen',
+                btnScanLahan: 'Pindai Kamera Lahan Sawah',
+                estYieldTitle: 'Perkiraan Hasil Panen Total:',
+                healthTitle: 'Tingkat Kesehatan Tanaman:',
+                historyLahanTitle: 'Riwayat Pindaian Lahan Sawah',
+
+                // Multi Lahan & Onboarding
+                landListTitle: 'Daftar Lahan Sawah Garapan Anda',
+                btnAddLand: '+ Tambah Lahan Sawah',
+                landNamePlaceholder: 'Nama Lahan (misal: Sawah Blok Selatan)',
+                landSizePlaceholder: 'Luas Lahan (Hektar)',
+                obStep1Title: 'Bebas Jeratan Tengkulak & Ijon',
+                obStep1Desc: 'Gabah ditimbang digital, harga jujur berbasis data presisi, bebas potongan sepihak.',
+                obBtnStart: 'Mulai Masukkan Data Petani',
+                obStep2Title: 'Data Utama Petani',
+                obStep2Sub: 'Sapaan Nama & Nomor WhatsApp',
+                obStep3Title: 'Data Lahan Sawah & Kelompok Tani',
+                obStep3Sub: 'Bisa mendaftarkan lebih dari satu lahan sawah',
+                btnFinishOB: 'Selesai & Aktifkan NusaTani',
+
+                // Chat AI
+                aiGreeting: 'Sugeng rawuh! 👋 Saya Asisten Pendamping NusaTani. Ada yang bisa dibantu tentang uji mutu gabah, modal tani tanpa tengkulak, atau cek harga harian via WhatsApp & SMS?',
+                aiPlaceholder: 'Tanyakan seputar harga, modal, atau uji mutu...'
+            },
+            jv: {
+                langName: '🌐 Indonesia',
+                signal: 'Sinyal Kuat',
+                navBeranda: 'Omah',
+                navKualitas: 'Uji Gabah',
+                navPasar: 'Rega Pasar',
+                navModal: 'Modal Tani',
+                navLahan: 'Ndelok Sawah',
+                greeting: 'Sugeng Rawuh, Mbah / Pak Tani',
+                antiTengkulakTitle: 'Bebas Tengkulak lan Sistem Ijon',
+                antiTengkulakDesc: 'Timbangan digital jujur, rega pas adhedhasar data akurat, ora dipotong sepihak.',
+                btnModalDirect: 'Jupuk Modal Tani Bebas Tengkulak',
+                modul1Name: '1. Bijian Modal Tani Jujur',
+                modul1Detail: 'Petungan AI Random Forest • Bebas Bunga Ijon',
+                modul2Name: '2. Potret Lahan lan Hama Sawah',
+                modul2Detail: 'Kamera Sawah Otomatis YOLO_ECO • Prakiraan Panen',
+                modul3Name: '3. Prediksi Rega Gabah Wajar',
+                modul3Detail: 'Prediksi XGBoost • Wara-wara WA & SMS',
+                modul4Name: '4. Cek Kadar Banyu lan Mutu Gabah',
+                modul4Detail: 'Kamera Otomatis SVM • Bebas Suda Timbangan Sepihak',
+                offtakerTitle: 'Akses Pembeli Resmi Tanpa Pengepul',
+                offtakerBadge: 'Verifikasi Digital',
+                offtakerSub: 'Tuku Sesuai Rega Resmi Bulog',
+                offtakerCond: 'Syarat: Kadar Banyu ≤ 14%',
+                btnSellDirect: 'Adol Langsung',
+                researchTitle: 'Pusat Pengembangan Lanjutan lan Ekspor',
+                researchDesc: 'Standar mutu kadar banyu ekspor, sertifikat sawah ramah lingkungan, lan jaringan distribusi tanpa perantara.',
+                btnResearch: 'Sinau Pengembangan Lanjutan',
+
+                // Modal Tanam
+                modalHeading: 'Biji Kelayakan Modal lan Sambung Pemegang Dana',
+                modalSub: 'Petungan Otomatis Bebas Jeratan Tengkulak lan Sistem Ijon',
+                scoreTitle: 'Tingkat Kelayakan Modal Petani:',
+                scoreGrade: 'Sangat Layak (Kelas Utama)',
+                plafonTitle: 'Wates Maksimal Modal Disetujui:',
+                partnerTitle: 'Rekomendasi Pemegang Modal Resmi (Langsung WA)',
+                partnerBadge: 'Terverifikasi Resmi',
+                btnApplyWA: 'Jupuk Modal via WA',
+
+                // Uji Mutu
+                qualityHeading: 'Uji Mutu lan Kadar Banyu Gabah Bebas Potongan',
+                qualitySub: 'Potret Kamera Otomatis Mencegah Suda Timbangan Sepihak',
+                scanningText: 'Ndelok Bulir Gabah...',
+                btnScanNow: 'Potret Sampel Gabah Saiki',
+                certTitle: 'Sertifikat Mutu Digital Paling Anyar',
+                moistureTitle: 'Kadar Banyu Gabah:',
+                moistureNote: 'Pas Kanggo Digiling',
+                hampaTitle: 'Hampa / Regetan:',
+                hampaNote: 'Resik Banget',
+                gradingTitle: 'Peringkat Mutu:',
+                dockingTitle: 'Perlindungan Suda Rega:',
+                priceTitle: 'Patokan Rega Wajar:',
+                historyTitle: 'Riwayat Uji Mutu Gabah Saben Lahan',
+                chooseLand: 'Pilih Lahan Sawah:',
+
+                // Cek Harga
+                priceHeading: 'Prakiraan Rega Pasar Wajar',
+                priceSub: 'Prediksi Tren Rega lan Wara-wara WA/SMS',
+                adviceTitle: 'Saran Waktu Adol Paling Apik:',
+                adviceAction: 'SIMPEN STOK (3 - 5 DINA MANEH)',
+                adviceDesc: 'Diperkirakake ana kenaikan rega gabah minggu ngarep ing wilayah sampeyan.',
+                priceListTitle: 'Daftar Prediksi Rega Gabah lan Beras',
+                adviceTip: '💡 Pitutur Kanggo Petani:',
+
+                // Pindai Lahan
+                lahanHeading: 'Ndelok Lahan lan Kesehatan Sawah',
+                lahanSub: 'Deteksi Kesehatan Tanduran lan Hasil Panen',
+                statusReady: 'Tanduran Subur lan Siap Panen',
+                btnScanLahan: 'Potret Kamera Lahan Sawah',
+                estYieldTitle: 'Prakiraan Hasil Panen Total:',
+                healthTitle: 'Tingkat Kesehatan Tanduran:',
+                historyLahanTitle: 'Riwayat Pindaian Lahan Sawah',
+
+                // Multi Lahan & Onboarding
+                landListTitle: 'Daftar Lahan Sawah Garapan Sampeyan',
+                btnAddLand: '+ Tambah Lahan Sawah',
+                landNamePlaceholder: 'Merek Lahan (tuladha: Sawah Blok Kidul)',
+                landSizePlaceholder: 'Ombone Lahan (Hektar)',
+                obStep1Title: 'Bebas Jeratan Tengkulak lan Sistem Ijon',
+                obStep1Desc: 'Gabah ditimbang digital, rega pas adhedhasar data akurat, ora dipotong sepihak.',
+                obBtnStart: 'Mulai Lebokne Data Petani',
+                obStep2Title: 'Data Utama Petani',
+                obStep2Sub: 'Jeneng Lengkap lan Nomer WhatsApp',
+                obStep3Title: 'Data Lahan Sawah lan Kelompok Tani',
+                obStep3Sub: 'Bisa ngisi luwih saka siji lahan sawah',
+                btnFinishOB: 'Rampung lan Aktifake NusaTani',
+
+                // Chat AI
+                aiGreeting: 'Sugeng rawuh! 👋 Kula Asisten Pendamping NusaTani. Wonten ingkang saget dipunbantu babagan uji mutu gabah, modal tani tanpa tengkulak, utawi cek rega saben dina liwat WhatsApp lan SMS?',
+                aiPlaceholder: 'Ketik pitakon babagan rega, modal, utawi uji gabah...'
+            }
+        };
+
+        // Application State
+        const state = {
+            lang: 'id', // 'id' or 'jv'
+            currentTab: 'beranda',
+            onboardingStep: 1,
+            user: {
+                name: 'Pak Budi Santoso',
+                phone: '6281234567890',
+                kabupaten: 'Banyuwangi',
+                kecamatan: 'Genteng',
+                kelompokTani: 'Poktan Subur Makmur 02',
+                lands: [
+                    { id: 1, name: 'Sawah Blok Utara (Inpari 32)', size: 1.2, activeCrop: 'Gabah Kering Panen (GKP)', estYieldTon: 7.8 },
+                    { id: 2, name: 'Sawah Blok Selatan (Ciherang)', size: 0.8, activeCrop: 'Gabah Kering Panen (GKP)', estYieldTon: 5.2 }
+                ],
+                selectedLandId: 1,
+                creditScoreValue: 785,
+                approvedFundLimit: 'Rp18.500.000',
+                notifications: {
+                    waHarga: true,
+                    smsHarga: true,
+                    waModal: true,
+                    smsDarurat: true
+                },
+                qualityHistory: [
+                    { id: 101, landId: 1, date: '16 Okt 2026', moisture: '13.8%', hampa: '2.1%', grade: 'Kualitas Super (GKP Premium)', price: 7450, docking: '0% (Bebas Potongan)' },
+                    { id: 102, landId: 2, date: '12 Sep 2026', moisture: '14.2%', hampa: '2.5%', grade: 'Kualitas Baik (GKP Standar)', price: 7300, docking: '0% (Bebas Potongan)' }
+                ],
+                lahanHistory: [
+                    { id: 201, landId: 1, date: '15 Okt 2026', status: 'Sawah Subur & Bebas Hama', health: '95.4%', estTon: 7.8 },
+                    { id: 202, landId: 2, date: '10 Sep 2026', status: 'Sawah Subur - Perlu Tambahan Pupuk', health: '91.2%', estTon: 5.2 }
+                ]
+            },
+            fundingPartners: [
+                { id: 1, name: 'BUMDes Sejahtera Genteng', type: 'Mitra Sarpras Desa', limitOffer: 'Rp8.000.000', rate: '0% Bunga (Subsidi Desa)', waPhone: '6281234567801', desc: 'Penyaluran pupuk & benih non-tunai siap cair' },
+                { id: 2, name: 'Bank Syariah Tani Daerah', type: 'Lembaga Keuangan Resmi', limitOffer: 'Rp18.500.000', rate: 'Margin Rendah 3%/thn', waPhone: '6281234567802', desc: 'Rekomendasi modal kerja tanam utama' },
+                { id: 3, name: 'Koperasi Tani Subur Makmur', type: 'Koperasi Poktan Local', limitOffer: 'Rp5.000.000', rate: 'Modal Pupuk Poktan', waPhone: '6281234567803', desc: 'Khusus anggota Poktan Subur Makmur' }
+            ],
+            pricePredictions: [
+                { type: 'Gabah Kering Panen (GKP)', currentPrice: 7450, predicted7Days: 7680, trend: 'Munggah 🚀', confidence: 'Akurasi 96.4%', advice: 'Tahan Stok 3-5 Dina Maneh Supaya Untung' },
+                { type: 'Gabah Kering Giling (GKG)', currentPrice: 8200, predicted7Days: 8350, trend: 'Stabil ➡️', confidence: 'Akurasi 94.8%', advice: 'Bisa Diadol Langsung ing Bulog' },
+                { type: 'Beras Medium Pandanwangi', currentPrice: 13500, predicted7Days: 13400, trend: 'Mundhun Sithik 📉', confidence: 'Akurasi 92.1%', advice: 'Adol Secara Bertahap' }
+            ],
+            chatMessages: []
+        };
+
+        window.addEventListener('DOMContentLoaded', () => {
+            setInterval(updateClock, 1000);
+            updateClock();
+
+            // Set initial AI chat message based on lang
+            state.chatMessages = [{ sender: 'ai', text: i18n[state.lang].aiGreeting }];
+
+            const onboardingDone = localStorage.getItem('nusatani_ob_v3_done');
+            if (onboardingDone === 'true') {
+                state.onboardingStep = 6;
+                renderApp();
+            } else {
+                renderOnboarding();
+            }
+        });
+
+        function updateClock() {
+            const now = new Date();
+            const h = String(now.getHours()).padStart(2, '0');
+            const m = String(now.getMinutes()).padStart(2, '0');
+            const el = document.getElementById('clock-time');
+            if (el) el.innerText = `${h}:${m}`;
+        }
+
+        function toggleLanguage() {
+            state.lang = state.lang === 'id' ? 'jv' : 'id';
+            const btn = document.getElementById('lang-btn');
+            if (btn) btn.innerText = i18n[state.lang].langName;
+
+            const netLabel = document.getElementById('network-label');
+            if (netLabel) netLabel.innerHTML = `<i class="fa-solid fa-shield-halved text-emerald-400 mr-1"></i> ${i18n[state.lang].signal}`;
+            
+            // Update Navigation Bar labels
+            document.getElementById('label-nav-beranda').innerText = i18n[state.lang].navBeranda;
+            document.getElementById('label-nav-kualitas').innerText = i18n[state.lang].navKualitas;
+            document.getElementById('label-nav-pasar').innerText = i18n[state.lang].navPasar;
+            document.getElementById('label-nav-modal').innerText = i18n[state.lang].navModal;
+            document.getElementById('label-nav-lahan').innerText = i18n[state.lang].navLahan;
+
+            showToast(state.lang === 'id' ? 'Basa diganti menyang Bahasa Indonesia' : 'Basa diganti menyang Basa Jawa');
+            if (state.onboardingStep >= 6) renderApp();
+            else renderOnboarding();
+        }
+
+        function renderOnboarding() {
+            const container = document.getElementById('main-viewport');
+            document.getElementById('bottom-nav').classList.add('hidden');
+            document.getElementById('floating-ai-btn').classList.add('hidden');
+
+            const t = i18n[state.lang];
+            let html = '';
+
+            if (state.onboardingStep === 1) {
+                html = `
+                    <div class="flex-1 flex flex-col justify-between p-6 bg-[#F7FAF8] animate-fadeIn min-h-full">
+                        <div class="space-y-6 pt-4 text-center">
+                            <div class="w-20 h-20 rounded-3xl bg-[#14532D] text-emerald-400 flex items-center justify-center text-4xl shadow-xl mx-auto border-2 border-emerald-400/30">
+                                <i class="fa-solid fa-wheat-awn"></i>
+                            </div>
+                            <div class="space-y-2">
+                                <span class="bg-emerald-100 text-[#14532D] text-xs px-3.5 py-1.5 rounded-full font-black uppercase tracking-wider">NusaTani Presisi</span>
+                                <h1 class="text-2xl font-black text-gray-900 leading-tight">${t.obStep1Title}</h1>
+                                <p class="text-xs text-gray-600 leading-relaxed max-w-xs mx-auto">${t.obStep1Desc}</p>
+                            </div>
+
+                            <div class="bg-emerald-50 p-4 rounded-2xl border border-emerald-200 text-left space-y-2 text-xs">
+                                <div class="font-bold text-[#14532D] flex items-center gap-1.5">
+                                    <i class="fa-solid fa-circle-check text-emerald-600"></i> ${state.lang === 'id' ? 'Solusi Utama Petani:' : 'Solusi Utama Kanggo Petani:'}
+                                </div>
+                                <ul class="space-y-1.5 text-gray-700 text-[11px] list-disc list-inside">
+                                    <li>${state.lang === 'id' ? 'Modal Tanam Resmi tanpa Jeratan Ijon' : 'Modal Tani Resmi tanpa Bunga Pengepul'}</li>
+                                    <li>${state.lang === 'id' ? 'Harga Pasar Jujur dikirim via WA & SMS' : 'Rega Pasar Pas liwat WA lan SMS'}</li>
+                                    <li>${state.lang === 'id' ? 'Uji Kadar Air Otomatis (Bebas Potongan Sepihak)' : 'Uji Banyu Gabah Otomatis (Bebas Suda Timbangan)'}</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="pb-6">
+                            <button onclick="nextOnboarding()" class="w-full bg-[#15803D] hover:bg-[#166534] text-white font-black py-4 rounded-2xl shadow-lg transition-all text-sm flex items-center justify-center gap-2">
+                                <span>${t.obBtnStart}</span>
+                                <i class="fa-solid fa-arrow-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            } else if (state.onboardingStep === 2) {
+                html = `
+                    <div class="flex-1 flex flex-col justify-between p-6 bg-[#F7FAF8] animate-fadeIn min-h-full">
+                        <div class="space-y-5 pt-2">
+                            <div class="flex justify-between items-center text-xs font-bold text-emerald-800">
+                                <span class="bg-emerald-100 px-3 py-1 rounded-full">${state.lang === 'id' ? 'Langkah 1 dari 2' : 'Tahap 1 saking 2'}</span>
+                                <span>${t.obStep2Title}</span>
+                            </div>
+                            <h2 class="text-xl font-black text-gray-900">${t.obStep2Sub}</h2>
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="text-xs font-bold text-gray-500 uppercase block mb-1">${state.lang === 'id' ? 'Nama Lengkap Petani' : 'Jeneng Lengkap Petani'}</label>
+                                    <input type="text" id="ob-name" value="${state.user.name}" class="w-full px-4 py-3.5 bg-white border border-gray-200 rounded-2xl text-sm font-bold text-gray-900 focus:ring-2 focus:ring-[#15803D] focus:outline-none shadow-sm">
+                                </div>
+                                <div>
+                                    <label class="text-xs font-bold text-gray-500 uppercase block mb-1">${state.lang === 'id' ? 'Nomor WhatsApp / SMS Aktif' : 'Nomer WhatsApp / SMS Aktif'}</label>
+                                    <input type="text" id="ob-phone" value="${state.user.phone}" class="w-full px-4 py-3.5 bg-white border border-gray-200 rounded-2xl text-sm font-bold text-gray-900 focus:ring-2 focus:ring-[#15803D] focus:outline-none shadow-sm">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="pb-6">
+                            <button onclick="saveOnboardingStep2()" class="w-full bg-[#15803D] hover:bg-[#166534] text-white font-bold py-4 rounded-2xl shadow-lg text-sm">${state.lang === 'id' ? 'Lanjut ke Data Lahan' : 'Banjur menyang Data Lahan'}</button>
+                        </div>
+                    </div>
+                `;
+            } else if (state.onboardingStep === 3) {
+                html = `
+                    <div class="flex-1 flex flex-col justify-between p-6 bg-[#F7FAF8] animate-fadeIn min-h-full overflow-y-auto no-scrollbar">
+                        <div class="space-y-5 pt-2">
+                            <div class="flex justify-between items-center text-xs font-bold text-emerald-800">
+                                <span class="bg-emerald-100 px-3 py-1 rounded-full">${state.lang === 'id' ? 'Langkah 2 dari 2' : 'Tahap 2 saking 2'}</span>
+                                <span>${t.obStep3Title}</span>
+                            </div>
+                            <h2 class="text-xl font-black text-gray-900">${t.obStep3Sub}</h2>
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="text-xs font-bold text-gray-500 uppercase block mb-1">${state.lang === 'id' ? 'Kabupaten Wilayah' : 'Kabupaten Wilayah'}</label>
+                                    <select id="ob-kab" class="w-full px-4 py-3.5 bg-white border border-gray-200 rounded-2xl text-sm font-bold text-gray-900 focus:ring-2 focus:ring-[#15803D] focus:outline-none shadow-sm">
+                                        <option value="Banyuwangi" selected>Banyuwangi</option>
+                                        <option value="Jember">Jember</option>
+                                        <option value="Ngawi">Ngawi</option>
+                                        <option value="Karawang">Karawang</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="text-xs font-bold text-gray-500 uppercase block mb-1">${state.lang === 'id' ? 'Kecamatan (Wilayah Harga)' : 'Kecamatan (Wilayah Rega)'}</label>
+                                    <input type="text" id="ob-kec" value="${state.user.kecamatan}" class="w-full px-4 py-3.5 bg-white border border-gray-200 rounded-2xl text-sm font-bold text-gray-900 focus:ring-2 focus:ring-[#15803D] focus:outline-none shadow-sm">
+                                </div>
+                                <div>
+                                    <label class="text-xs font-bold text-gray-500 uppercase block mb-1">${state.lang === 'id' ? 'Nama Kelompok Tani (Poktan)' : 'Jeneng Kelompok Tani (Poktan)'}</label>
+                                    <input type="text" id="ob-kelompok" value="${state.user.kelompokTani}" class="w-full px-4 py-3.5 bg-white border border-gray-200 rounded-2xl text-sm font-black text-emerald-900 focus:ring-2 focus:ring-[#15803D] focus:outline-none shadow-sm">
+                                </div>
+
+                                <!-- Multi Lahan Container -->
+                                <div class="space-y-2 pt-2">
+                                    <div class="flex justify-between items-center">
+                                        <label class="text-xs font-bold text-gray-700 uppercase">${t.landListTitle}</label>
+                                        <button type="button" onclick="addLandFieldInOB()" class="text-xs bg-emerald-100 text-[#15803D] font-extrabold px-2.5 py-1 rounded-xl">${t.btnAddLand}</button>
+                                    </div>
+                                    
+                                    <div id="ob-lands-container" class="space-y-2">
+                                        ${state.user.lands.map((l, idx) => `
+                                            <div class="bg-emerald-50/60 p-3 rounded-2xl border border-emerald-200 flex items-center space-x-2">
+                                                <input type="text" value="${l.name}" id="ob-land-name-${idx}" placeholder="${t.landNamePlaceholder}" class="flex-1 px-3 py-2 bg-white border border-gray-200 rounded-xl text-xs font-bold">
+                                                <input type="number" step="0.1" value="${l.size}" id="ob-land-size-${idx}" placeholder="Ha" class="w-20 px-3 py-2 bg-white border border-gray-200 rounded-xl text-xs font-bold text-emerald-900">
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="py-6">
+                            <button onclick="finishOnboarding()" class="w-full bg-[#15803D] hover:bg-[#166534] text-white font-bold py-4 rounded-2xl shadow-lg text-sm">${t.btnFinishOB}</button>
+                        </div>
+                    </div>
+                `;
+            }
+
+            container.innerHTML = html;
+        }
+
+        function addLandFieldInOB() {
+            const container = document.getElementById('ob-lands-container');
+            const idx = container.children.length;
+            const t = i18n[state.lang];
+            const div = document.createElement('div');
+            div.className = "bg-emerald-50/60 p-3 rounded-2xl border border-emerald-200 flex items-center space-x-2 animate-fadeIn";
+            div.innerHTML = `
+                <input type="text" id="ob-land-name-${idx}" placeholder="${t.landNamePlaceholder}" class="flex-1 px-3 py-2 bg-white border border-gray-200 rounded-xl text-xs font-bold">
+                <input type="number" step="0.1" id="ob-land-size-${idx}" placeholder="Ha" class="w-20 px-3 py-2 bg-white border border-gray-200 rounded-xl text-xs font-bold text-emerald-900">
+            `;
+            container.appendChild(div);
+        }
+
+        function nextOnboarding() {
+            state.onboardingStep++;
+            renderOnboarding();
+        }
+
+        function saveOnboardingStep2() {
+            const name = document.getElementById('ob-name').value;
+            const phone = document.getElementById('ob-phone').value;
+            if (name) state.user.name = name;
+            if (phone) state.user.phone = phone;
+            nextOnboarding();
+        }
+
+        function finishOnboarding() {
+            const kab = document.getElementById('ob-kab').value;
+            const kec = document.getElementById('ob-kec').value;
+            const kel = document.getElementById('ob-kelompok').value;
+            if (kab) state.user.kabupaten = kab;
+            if (kec) state.user.kecamatan = kec;
+            if (kel) state.user.kelompokTani = kel;
+
+            // Collect Multi-Lahan Data
+            const newLands = [];
+            const container = document.getElementById('ob-lands-container');
+            if (container) {
+                for (let i = 0; i < container.children.length; i++) {
+                    const nameEl = document.getElementById(`ob-land-name-${i}`);
+                    const sizeEl = document.getElementById(`ob-land-size-${i}`);
+                    if (nameEl && nameEl.value) {
+                        const sz = parseFloat(sizeEl.value) || 1.0;
+                        newLands.push({
+                            id: Date.now() + i,
+                            name: nameEl.value,
+                            size: sz,
+                            activeCrop: 'Gabah Kering Panen (GKP)',
+                            estYieldTon: (sz * 6.5).toFixed(1)
+                        });
+                    }
+                }
+            }
+
+            if (newLands.length > 0) {
+                state.user.lands = newLands;
+                state.user.selectedLandId = newLands[0].id;
+            }
+
+            localStorage.setItem('nusatani_ob_v3_done', 'true');
+            state.onboardingStep = 6;
+            renderApp();
+            showToast(state.lang === 'id' ? `Aplikasi NusaTani Aktif untuk ${state.user.name}! 🌾` : `Aplikasi NusaTani Sampun Aktif Kanggo ${state.user.name}! 🌾`);
+        }
+
+        function renderApp() {
+            document.getElementById('bottom-nav').classList.remove('hidden');
+            document.getElementById('floating-ai-btn').classList.remove('hidden');
+            switchTab(state.currentTab);
+        }
+
+        function switchTab(tabId) {
+            state.currentTab = tabId;
+            ['beranda', 'kualitas', 'pasar', 'modal', 'lahan'].forEach(t => {
+                const btn = document.getElementById(`nav-${t}`);
+                if (btn) {
+                    if (t === tabId) btn.className = "flex flex-col items-center text-nt-600 font-bold scale-105 transition-all";
+                    else btn.className = "flex flex-col items-center text-gray-400 hover:text-nt-600 transition-all";
+                }
+            });
+            const viewport = document.getElementById('main-viewport');
+            viewport.scrollTop = 0;
+
+            if (tabId === 'beranda') renderBeranda();
+            else if (tabId === 'kualitas') renderKualitasSVM();
+            else if (tabId === 'pasar') renderPasarXGBoost();
+            else if (tabId === 'modal') renderModalRF();
+            else if (tabId === 'lahan') renderLahanYOLO();
+        }
+
+        function renderBeranda() {
+            const viewport = document.getElementById('main-viewport');
+            const t = i18n[state.lang];
+            const currentLand = state.user.lands.find(l => l.id === state.user.selectedLandId) || state.user.lands[0];
+
+            viewport.innerHTML = `
+                <!-- Header NusaTani -->
+                <div class="px-5 pt-5 pb-4 bg-white border-b border-gray-100 flex justify-between items-center shadow-sm">
+                    <div>
+                        <div class="flex items-center space-x-1.5">
+                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                            <span class="text-xs font-bold text-gray-500">Kec. ${state.user.kecamatan}, ${state.user.kabupaten}</span>
+                        </div>
+                        <h1 class="text-lg font-black text-gray-900">${state.user.name}</h1>
+                    </div>
+                    <button onclick="openNotifSettingsModal()" class="bg-emerald-50 text-[#15803D] px-3 py-1.5 rounded-2xl text-xs font-bold border border-emerald-200 flex items-center gap-1.5">
+                        <i class="fa-solid fa-bell text-xs"></i> WA / SMS
+                    </button>
+                </div>
+
+                <div class="p-5 space-y-5 animate-fadeIn">
+
+                    <!-- Anti-Tengkulak Banner -->
+                    <div class="bg-gradient-to-r from-[#14532D] via-[#15803D] to-[#166534] text-white p-5 rounded-3xl shadow-xl space-y-3 relative overflow-hidden">
+                        <div class="absolute -right-4 -bottom-4 text-white/10 text-8xl font-black pointer-events-none">🛡️</div>
+                        <div class="flex justify-between items-center border-b border-white/20 pb-2">
+                            <span class="text-[10px] bg-emerald-400/20 text-emerald-300 px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider">
+                                ${state.lang === 'id' ? 'Transaksi Digital Presisi' : 'Transaksi Digital Akurat'}
+                            </span>
+                            <span class="text-xs text-emerald-200 font-mono">${state.lang === 'id' ? 'Bebas Tebasan' : 'Bebas Tebas Sawah'}</span>
+                        </div>
+                        <div>
+                            <h3 class="text-base font-black">${t.antiTengkulakTitle}</h3>
+                            <p class="text-xs text-emerald-100 leading-relaxed mt-1">${t.antiTengkulakDesc}</p>
+                        </div>
+
+                        <div class="pt-2">
+                            <button onclick="switchTab('modal')" class="w-full bg-amber-500 hover:bg-amber-600 text-gray-950 font-black py-3 rounded-2xl text-xs shadow-lg flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-hand-holding-dollar text-sm"></i>
+                                <span>${t.btnModalDirect}</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Land Selector Dropdown -->
+                    <div class="bg-white p-3.5 rounded-2xl border border-gray-200 flex justify-between items-center text-xs shadow-sm">
+                        <span class="font-bold text-gray-600">${t.chooseLand}</span>
+                        <select onchange="changeActiveLand(this.value)" class="bg-emerald-50 text-emerald-900 font-extrabold px-3 py-1.5 rounded-xl border border-emerald-200 focus:outline-none">
+                            ${state.user.lands.map(l => `
+                                <option value="${l.id}" ${l.id === state.user.selectedLandId ? 'selected' : ''}>${l.name} (${l.size} Ha)</option>
+                            `).join('')}
+                        </select>
+                    </div>
+
+                    <!-- 4 Modul Presisi NusaTani -->
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center">
+                            <h4 class="text-xs font-extrabold text-gray-500 uppercase tracking-wider">${state.lang === 'id' ? '4 Fitur Presisi NusaTani' : '4 Fitur Utama NusaTani'}</h4>
+                            <span class="text-[10px] bg-emerald-100 text-[#15803D] px-2 py-0.5 rounded-full font-bold">${state.lang === 'id' ? 'Status Aktif ⚡' : 'Sampun Aktif ⚡'}</span>
+                        </div>
+
+                        <div class="grid grid-cols-1 gap-3">
+                            <!-- Card 1: Modal Tanam -->
+                            <div onclick="switchTab('modal')" class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm cursor-pointer hover:border-emerald-300 transition-all flex items-center justify-between">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-10 h-10 rounded-2xl bg-amber-100 text-amber-800 flex items-center justify-center font-black text-base shrink-0">
+                                        <i class="fa-solid fa-award"></i>
+                                    </div>
+                                    <div>
+                                        <div class="font-bold text-xs text-gray-900">${t.modul1Name}</div>
+                                        <div class="text-[10px] text-amber-800 font-bold mt-0.5">${state.user.approvedFundLimit} • WA Sambung Pemegang Modal</div>
+                                    </div>
+                                </div>
+                                <i class="fa-solid fa-chevron-right text-xs text-gray-400"></i>
+                            </div>
+
+                            <!-- Card 2: Kamera Pindai Lahan -->
+                            <div onclick="switchTab('lahan')" class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm cursor-pointer hover:border-emerald-300 transition-all flex items-center justify-between">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-10 h-10 rounded-2xl bg-purple-100 text-purple-800 flex items-center justify-center font-black text-base shrink-0">
+                                        <i class="fa-solid fa-eye"></i>
+                                    </div>
+                                    <div>
+                                        <div class="font-bold text-xs text-gray-900">${t.modul2Name}</div>
+                                        <div class="text-[10px] text-gray-500 mt-0.5">${currentLand.name}: Estimasi ${currentLand.estYieldTon} Ton</div>
+                                    </div>
+                                </div>
+                                <i class="fa-solid fa-chevron-right text-xs text-gray-400"></i>
+                            </div>
+
+                            <!-- Card 3: Prediksi Harga Pasar -->
+                            <div onclick="switchTab('pasar')" class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm cursor-pointer hover:border-emerald-300 transition-all flex items-center justify-between">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-10 h-10 rounded-2xl bg-blue-100 text-blue-800 flex items-center justify-center font-black text-base shrink-0">
+                                        <i class="fa-solid fa-chart-line"></i>
+                                    </div>
+                                    <div>
+                                        <div class="font-bold text-xs text-gray-900">${t.modul3Name}</div>
+                                        <div class="text-[10px] text-emerald-700 font-bold mt-0.5">${state.lang === 'id' ? 'Prediksi: Rp7.680 / kg minggu depan' : 'Prediksi: Rp7.680 / kg minggu ngarep'}</div>
+                                    </div>
+                                </div>
+                                <i class="fa-solid fa-chevron-right text-xs text-gray-400"></i>
+                            </div>
+
+                            <!-- Card 4: Computer Vision Uji Gabah -->
+                            <div onclick="switchTab('kualitas')" class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm cursor-pointer hover:border-emerald-300 transition-all flex items-center justify-between">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-10 h-10 rounded-2xl bg-emerald-100 text-[#15803D] flex items-center justify-center font-black text-base shrink-0">
+                                        <i class="fa-solid fa-camera"></i>
+                                    </div>
+                                    <div>
+                                        <div class="font-bold text-xs text-gray-900">${t.modul4Name}</div>
+                                        <div class="text-[10px] text-gray-500 mt-0.5">${state.lang === 'id' ? 'Hasil Kadar Air: 13.8% • Anti Potongan' : 'Hasil Kadar Banyu: 13.8% • Bebas Suda'}</div>
+                                    </div>
+                                </div>
+                                <i class="fa-solid fa-chevron-right text-xs text-gray-400"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Offtaker Resmi Non-Tengkulak -->
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center">
+                            <h4 class="text-xs font-extrabold text-gray-500 uppercase tracking-wider">${t.offtakerTitle}</h4>
+                            <span class="text-[10px] text-emerald-800 font-bold">${t.offtakerBadge}</span>
+                        </div>
+
+                        <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm space-y-3">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <div class="flex items-center gap-1.5">
+                                        <h5 class="font-bold text-sm text-gray-900">Bulog Sub-Divre Banyuwangi</h5>
+                                        <i class="fa-solid fa-circle-check text-emerald-600 text-xs"></i>
+                                    </div>
+                                    <div class="text-xs text-gray-500 mt-0.5">${t.offtakerSub}</div>
+                                </div>
+                                <span class="bg-emerald-100 text-emerald-900 text-xs font-black px-2.5 py-1 rounded-full">Rp7.500/kg</span>
+                            </div>
+                            <div class="flex justify-between items-center border-t border-gray-100 pt-2.5 text-xs">
+                                <span class="text-gray-500">${t.offtakerCond}</span>
+                                <button onclick="openDirectSaleModal('Bulog Sub-Divre Banyuwangi', 7500)" class="bg-[#15803D] text-white px-3.5 py-1.5 rounded-xl font-bold hover:bg-[#166534]">${t.btnSellDirect}</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Fitur Pengembangan Lanjutan -->
+                    <div class="bg-gradient-to-br from-amber-700 via-amber-800 to-[#14532D] text-white p-5 rounded-3xl shadow-xl space-y-3 relative overflow-hidden border border-amber-500/30">
+                        <div class="flex justify-between items-center">
+                            <span class="bg-amber-400 text-gray-950 text-[10px] px-3 py-0.5 rounded-full font-black uppercase">${state.lang === 'id' ? 'Fitur Pengembangan Masa Depan' : 'Fitur Pengembangan Soko Mburi'}</span>
+                            <span class="text-[10px] text-amber-200 font-mono">${state.lang === 'id' ? 'Riset Lanjutan' : 'Riset Mburi'}</span>
+                        </div>
+                        <h3 class="text-sm font-black">${t.researchTitle}</h3>
+                        <p class="text-xs text-amber-100/90 leading-relaxed">${t.researchDesc}</p>
+                        <button onclick="openFutureResearchModal()" class="w-full bg-white text-amber-950 text-xs font-extrabold py-2.5 rounded-2xl shadow hover:bg-amber-50">${t.btnResearch}</button>
+                    </div>
+
+                </div>
+            `;
+        }
+
+        function changeActiveLand(landId) {
+            state.user.selectedLandId = parseInt(landId);
+            showToast(state.lang === 'id' ? 'Lahan aktif diperbarui' : 'Lahan aktif diganti');
+            renderBeranda();
+        }
+
+        function renderModalRF() {
+            const viewport = document.getElementById('main-viewport');
+            const t = i18n[state.lang];
+
+            viewport.innerHTML = `
+                <div class="px-5 pt-5 pb-3 bg-white border-b border-gray-100 space-y-1">
+                    <div class="flex items-center gap-2">
+                        <span class="bg-amber-100 text-amber-900 text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase">Modul 1</span>
+                        <h1 class="text-lg font-black text-gray-900">${t.modalHeading}</h1>
+                    </div>
+                    <p class="text-xs text-gray-500">${t.modalSub}</p>
+                </div>
+
+                <div class="p-5 space-y-5 animate-fadeIn">
+
+                    <!-- Score Card -->
+                    <div class="bg-gradient-to-br from-amber-800 via-amber-900 to-stone-900 text-white p-5 rounded-3xl shadow-xl space-y-4">
+                        <div class="flex justify-between items-center border-b border-white/15 pb-2">
+                            <span class="text-[10px] bg-amber-400/20 text-amber-300 px-3 py-0.5 rounded-full font-bold">${state.lang === 'id' ? 'Analisis Otomatis AI' : 'Petungan Otomatis AI'}</span>
+                            <span class="text-xs text-amber-200 font-mono">ID: #RF-PETANI-BW88</span>
+                        </div>
+
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <div class="text-xs text-amber-200">${t.scoreTitle}</div>
+                                <div class="text-3xl font-black text-amber-400 mt-1">${state.user.creditScoreValue} <span class="text-xs text-white font-normal">/ 850</span></div>
+                                <div class="text-xs font-bold text-emerald-300 mt-1">${t.scoreGrade}</div>
+                            </div>
+                            <div class="w-16 h-16 rounded-2xl bg-amber-500/20 border-2 border-amber-400 flex items-center justify-center text-3xl text-amber-300 font-black">
+                                A
+                            </div>
+                        </div>
+
+                        <div class="pt-3 border-t border-white/15 flex justify-between items-center text-xs">
+                            <span class="text-amber-200">${t.plafonTitle}</span>
+                            <strong class="text-white text-sm font-black">${state.user.approvedFundLimit}</strong>
+                        </div>
+                    </div>
+
+                    <!-- Pemegang Dana WA Connection -->
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center">
+                            <h4 class="font-extrabold text-xs text-gray-500 uppercase tracking-wider">${t.partnerTitle}</h4>
+                            <span class="text-[10px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-bold">${t.partnerBadge}</span>
+                        </div>
+
+                        ${state.fundingPartners.map(p => `
+                            <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm space-y-2">
+                                <div class="flex justify-between items-start">
+                                    <div>
+                                        <h5 class="font-bold text-sm text-gray-900">${p.name}</h5>
+                                        <span class="text-[10px] text-gray-500 block mt-0.5">${p.type} • ${p.rate}</span>
+                                    </div>
+                                    <span class="bg-amber-50 text-amber-800 border border-amber-200 text-[10px] font-extrabold px-2 py-0.5 rounded-full">${p.limitOffer}</span>
+                                </div>
+                                <p class="text-xs text-gray-600">${p.desc}</p>
+                                <div class="flex justify-between items-center pt-2 border-t border-gray-100 text-xs">
+                                    <span class="text-emerald-700 font-bold">${state.lang === 'id' ? 'Status: Siap Salur' : 'Status: Siap Cair'}</span>
+                                    <a href="https://wa.me/${p.waPhone}?text=Halo%20${encodeURIComponent(p.name)},%20saya%20petani%20${encodeURIComponent(state.user.name)}%20(ID:%20RF-PETANI-BW88)%20ingin%20mengajukan%20modal%20tanam%20sebesar%20${encodeURIComponent(p.limitOffer)}." target="_blank" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-1.5 rounded-xl font-bold shadow flex items-center gap-1.5">
+                                        <i class="fa-brands fa-whatsapp text-sm"></i>
+                                        <span>${t.btnApplyWA}</span>
+                                    </a>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+
+                </div>
+            `;
+        }
+
+        function renderKualitasSVM() {
+            const viewport = document.getElementById('main-viewport');
+            const t = i18n[state.lang];
+            const currentLand = state.user.lands.find(l => l.id === state.user.selectedLandId) || state.user.lands[0];
+            const landHistory = state.user.qualityHistory.filter(q => q.landId === currentLand.id);
+
+            viewport.innerHTML = `
+                <div class="px-5 pt-5 pb-3 bg-white border-b border-gray-100 space-y-1">
+                    <div class="flex items-center gap-2">
+                        <span class="bg-emerald-100 text-[#14532D] text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase">Modul 4</span>
+                        <h1 class="text-lg font-black text-gray-900">${t.qualityHeading}</h1>
+                    </div>
+                    <p class="text-xs text-gray-500">${t.qualitySub}</p>
+                </div>
+
+                <div class="p-5 space-y-5 animate-fadeIn">
+
+                    <!-- Choose Land -->
+                    <div class="bg-white p-3 rounded-2xl border border-gray-200 flex justify-between items-center text-xs">
+                        <span class="font-bold text-gray-600">${t.chooseLand}</span>
+                        <select onchange="changeActiveLand(this.value)" class="bg-emerald-50 text-emerald-900 font-extrabold px-3 py-1 rounded-xl border border-emerald-200">
+                            ${state.user.lands.map(l => `
+                                <option value="${l.id}" ${l.id === state.user.selectedLandId ? 'selected' : ''}>${l.name}</option>
+                            `).join('')}
+                        </select>
+                    </div>
+
+                    <!-- Live Visual Scan -->
+                    <div class="bg-gray-950 rounded-3xl p-4 text-white space-y-4 shadow-xl border border-emerald-500/30">
+                        <div class="relative h-44 bg-gray-900 rounded-2xl overflow-hidden flex items-center justify-center border border-emerald-500/40">
+                            <div class="text-center space-y-2">
+                                <div class="text-5xl animate-bounce">🌾</div>
+                                <div class="text-xs text-emerald-400 font-mono">${t.scanningText}</div>
+                            </div>
+                            <div class="scan-line"></div>
+                            
+                            <div class="absolute top-2 left-2 bg-black/60 px-2.5 py-1 rounded-md text-[10px] font-mono text-emerald-300">
+                                ${currentLand.name}
+                            </div>
+                        </div>
+
+                        <button onclick="runSvmQualityScan()" class="w-full bg-[#15803D] hover:bg-[#166534] text-white font-bold py-3.5 rounded-2xl text-xs flex items-center justify-center space-x-2 shadow-lg">
+                            <i class="fa-solid fa-camera"></i>
+                            <span>${t.btnScanNow}</span>
+                        </button>
+                    </div>
+
+                    <!-- Quality Test Result Card -->
+                    <div class="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm space-y-3">
+                        <div class="flex justify-between items-center border-b border-gray-100 pb-2">
+                            <h3 class="font-bold text-xs text-gray-700 uppercase">${t.certTitle}</h3>
+                            <span class="text-[10px] text-gray-400">${landHistory.length > 0 ? landHistory[0].date : 'Baru'}</span>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3 text-xs">
+                            <div class="bg-emerald-50 p-3 rounded-2xl border border-emerald-100">
+                                <span class="text-gray-500 block text-[10px]">${t.moistureTitle}</span>
+                                <strong class="text-base text-emerald-900 font-black">${landHistory.length > 0 ? landHistory[0].moisture : '13.8%'}</strong>
+                                <span class="text-[9px] text-emerald-700 block mt-0.5">${t.moistureNote}</span>
+                            </div>
+                            <div class="bg-emerald-50 p-3 rounded-2xl border border-emerald-100">
+                                <span class="text-gray-500 block text-[10px]">${t.hampaTitle}</span>
+                                <strong class="text-base text-emerald-900 font-black">${landHistory.length > 0 ? landHistory[0].hampa : '2.1%'}</strong>
+                                <span class="text-[9px] text-emerald-700 block mt-0.5">${t.hampaNote}</span>
+                            </div>
+                        </div>
+
+                        <div class="p-3 bg-gray-50 rounded-2xl text-xs space-y-1.5 border border-gray-200">
+                            <div class="flex justify-between"><span>${t.gradingTitle}</span> <strong class="text-emerald-800 font-bold">${landHistory.length > 0 ? landHistory[0].grade : 'Kualitas Super (GKP Premium)'}</strong></div>
+                            <div class="flex justify-between border-t border-gray-200 pt-1"><span>${t.dockingTitle}</span> <strong class="text-emerald-700 font-bold">${landHistory.length > 0 ? landHistory[0].docking : '0% (Bebas Potongan)'}</strong></div>
+                            <div class="flex justify-between border-t border-gray-200 pt-1"><span>${t.priceTitle}</span> <strong class="text-emerald-900 font-black">Rp${landHistory.length > 0 ? landHistory[0].price.toLocaleString('id-ID') : '7.450'}/kg</strong></div>
+                        </div>
+                    </div>
+
+                    <!-- History Log Multi-Lahan -->
+                    <div class="space-y-2">
+                        <h4 class="font-bold text-xs text-gray-500 uppercase">${t.historyTitle}</h4>
+                        ${landHistory.map(h => `
+                            <div class="bg-white p-3 rounded-2xl border border-gray-100 text-xs flex justify-between items-center">
+                                <div>
+                                    <div class="font-bold text-gray-900">${h.grade}</div>
+                                    <div class="text-[10px] text-gray-500">${h.date} • Air: ${h.moisture}</div>
+                                </div>
+                                <span class="font-black text-emerald-800">Rp${h.price.toLocaleString('id-ID')}/kg</span>
+                            </div>
+                        `).join('')}
+                    </div>
+
+                </div>
+            `;
+        }
+
+        function runSvmQualityScan() {
+            const t = i18n[state.lang];
+            showToast(state.lang === 'id' ? 'Memproses foto sampel gabah...' : 'Ndelok foto sampel gabah...');
+            setTimeout(() => {
+                const currentLand = state.user.lands.find(l => l.id === state.user.selectedLandId) || state.user.lands[0];
+                const newRecord = {
+                    id: Date.now(),
+                    landId: currentLand.id,
+                    date: state.lang === 'id' ? 'Baru Saja' : 'Samenika',
+                    moisture: (13.5 + Math.random() * 0.4).toFixed(1) + '%',
+                    hampa: (1.6 + Math.random() * 0.4).toFixed(1) + '%',
+                    grade: 'Kualitas Super (GKP Premium)',
+                    price: 7480,
+                    docking: '0% (Bebas Potongan)'
+                };
+                state.user.qualityHistory.unshift(newRecord);
+                renderKualitasSVM();
+                showToast(state.lang === 'id' ? 'Uji Mutu Selesai: Kualitas Super Bebas Potongan!' : 'Uji Mutu Rampung: Gabah Super Bebas Suda!');
+            }, 1400);
+        }
+
+        function renderPasarXGBoost() {
+            const viewport = document.getElementById('main-viewport');
+            const t = i18n[state.lang];
+
+            viewport.innerHTML = `
+                <div class="px-5 pt-5 pb-3 bg-white border-b border-gray-100 space-y-1">
+                    <div class="flex items-center gap-2">
+                        <span class="bg-blue-100 text-blue-800 text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase">Modul 3</span>
+                        <h1 class="text-lg font-black text-gray-900">${t.priceHeading}</h1>
+                    </div>
+                    <p class="text-xs text-gray-500">${t.priceSub}</p>
+                </div>
+
+                <div class="p-5 space-y-5 animate-fadeIn">
+
+                    <!-- XGBoost Highlight -->
+                    <div class="bg-gradient-to-br from-blue-900 via-blue-800 to-indigo-950 text-white p-5 rounded-3xl shadow-lg space-y-3">
+                        <div class="flex justify-between items-center text-xs">
+                            <span class="bg-blue-400/20 text-blue-300 px-3 py-0.5 rounded-full font-bold">${state.lang === 'id' ? 'Prediksi Wajar' : 'Petungan Rega'}</span>
+                            <span class="text-blue-200 font-mono">Kec. ${state.user.kecamatan}</span>
+                        </div>
+                        <div>
+                            <div class="text-xs text-blue-200">${t.adviceTitle}</div>
+                            <div class="text-xl font-black text-white mt-1">${t.adviceAction}</div>
+                        </div>
+                        <p class="text-[11px] text-blue-100/90 leading-relaxed">${t.adviceDesc}</p>
+                    </div>
+
+                    <!-- Price Forecast List -->
+                    <div class="space-y-3">
+                        <h4 class="text-xs font-extrabold text-gray-500 uppercase tracking-wider">${t.priceListTitle}</h4>
+
+                        ${state.pricePredictions.map(p => `
+                            <div class="bg-white p-4 rounded-3xl border border-gray-100 shadow-sm space-y-3">
+                                <div class="flex justify-between items-start">
+                                    <div>
+                                        <h5 class="font-bold text-sm text-gray-900">${p.type}</h5>
+                                        <span class="text-[10px] text-blue-700 bg-blue-50 px-2 py-0.5 rounded-md font-semibold">${p.confidence}</span>
+                                    </div>
+                                    <div class="text-right">
+                                        <div class="font-black text-sm text-gray-900">Rp${p.currentPrice.toLocaleString('id-ID')}/kg</div>
+                                        <span class="text-xs font-bold text-emerald-600">${p.trend}</span>
+                                    </div>
+                                </div>
+
+                                <div class="p-3 bg-gray-50 rounded-2xl flex justify-between items-center text-xs">
+                                    <span class="text-gray-500">${state.lang === 'id' ? 'Prediksi 7 Hari Depan:' : 'Prediksi 7 Dina Ngarep:'}</span>
+                                    <strong class="text-blue-900 font-black">Rp${p.predicted7Days.toLocaleString('id-ID')} / kg</strong>
+                                </div>
+
+                                <div class="text-[10px] text-amber-900 bg-amber-50 p-2.5 rounded-xl border border-amber-200 font-bold">
+                                    ${t.adviceTip} ${p.advice}
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+
+                </div>
+            `;
+        }
+
+        function renderLahanYOLO() {
+            const viewport = document.getElementById('main-viewport');
+            const t = i18n[state.lang];
+            const currentLand = state.user.lands.find(l => l.id === state.user.selectedLandId) || state.user.lands[0];
+            const historyLahan = state.user.lahanHistory.filter(lh => lh.landId === currentLand.id);
+
+            viewport.innerHTML = `
+                <div class="px-5 pt-5 pb-3 bg-white border-b border-gray-100 space-y-1">
+                    <div class="flex items-center gap-2">
+                        <span class="bg-purple-100 text-purple-800 text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase">Modul 2</span>
+                        <h1 class="text-lg font-black text-gray-900">${t.lahanHeading}</h1>
+                    </div>
+                    <p class="text-xs text-gray-500">${t.lahanSub}</p>
+                </div>
+
+                <div class="p-5 space-y-5 animate-fadeIn">
+
+                    <!-- Choose Land -->
+                    <div class="bg-white p-3 rounded-2xl border border-gray-200 flex justify-between items-center text-xs">
+                        <span class="font-bold text-gray-600">${t.chooseLand}</span>
+                        <select onchange="changeActiveLand(this.value)" class="bg-purple-50 text-purple-900 font-extrabold px-3 py-1 rounded-xl border border-purple-200">
+                            ${state.user.lands.map(l => `
+                                <option value="${l.id}" ${l.id === state.user.selectedLandId ? 'selected' : ''}>${l.name} (${l.size} Ha)</option>
+                            `).join('')}
+                        </select>
+                    </div>
+
+                    <!-- Drone Visual -->
+                    <div class="bg-gray-900 rounded-3xl p-4 text-white space-y-3 relative overflow-hidden shadow-xl border border-purple-500/30">
+                        <div class="relative h-44 bg-emerald-950 rounded-2xl overflow-hidden flex items-center justify-center">
+                            <div class="border-2 border-emerald-400 bg-emerald-500/20 absolute top-6 left-8 w-28 h-20 rounded-md p-1">
+                                <span class="bg-emerald-500 text-black text-[8px] font-black px-1 rounded">${state.lang === 'id' ? 'Tanaman Subur 98%' : 'Subur Banget 98%'}</span>
+                            </div>
+
+                            <div class="border-2 border-amber-400 bg-amber-500/20 absolute bottom-4 right-10 w-24 h-16 rounded-md p-1">
+                                <span class="bg-amber-400 text-black text-[8px] font-black px-1 rounded">${state.lang === 'id' ? 'Bebas Hama' : 'Bebas Regetan'}</span>
+                            </div>
+
+                            <div class="absolute top-2 right-2 text-[10px] font-mono bg-black/60 px-2 py-0.5 rounded text-purple-300">
+                                ${currentLand.name}
+                            </div>
+                        </div>
+
+                        <div class="flex justify-between items-center text-xs pt-1">
+                            <span>Status: <strong>${t.statusReady}</strong></span>
+                            <button onclick="triggerYoloScan()" class="bg-purple-600 hover:bg-purple-700 text-white px-3.5 py-1.5 rounded-xl font-bold">${t.btnScanLahan}</button>
+                        </div>
+                    </div>
+
+                    <!-- Metrics -->
+                    <div class="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm space-y-3">
+                        <h4 class="font-bold text-xs text-gray-700 uppercase">${currentLand.name}</h4>
+
+                        <div class="grid grid-cols-2 gap-3 text-xs">
+                            <div class="p-3 bg-purple-50 rounded-2xl border border-purple-100">
+                                <span class="text-gray-500 block text-[10px]">${t.estYieldTitle}</span>
+                                <strong class="text-base text-purple-900 font-black">${currentLand.estYieldTon} Ton</strong>
+                            </div>
+                            <div class="p-3 bg-purple-50 rounded-2xl border border-purple-100">
+                                <span class="text-gray-500 block text-[10px]">${t.healthTitle}</span>
+                                <strong class="text-base text-purple-900 font-black">95.4% Sehat</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Multi-Lahan History -->
+                    <div class="space-y-2">
+                        <h4 class="font-bold text-xs text-gray-500 uppercase">${t.historyLahanTitle}</h4>
+                        ${historyLahan.map(lh => `
+                            <div class="bg-white p-3 rounded-2xl border border-gray-100 text-xs flex justify-between items-center">
+                                <div>
+                                    <div class="font-bold text-gray-900">${lh.status}</div>
+                                    <div class="text-[10px] text-gray-500">${lh.date} • Sehat: ${lh.health}</div>
+                                </div>
+                                <span class="font-black text-purple-900">${lh.estTon} Ton</span>
+                            </div>
+                        `).join('')}
+                    </div>
+
+                </div>
+            `;
+        }
+
+        function triggerYoloScan() {
+            showToast(state.lang === 'id' ? 'Memindai kondisi sawah...' : 'Ndelok kahanan sawah...');
+            setTimeout(() => {
+                showToast(state.lang === 'id' ? 'Pindaian Selesai: Sawah Subur & Bebas Hama!' : 'Pindaian Rampung: Sawah Subur lan Bebas Hama!');
+            }, 1200);
+        }
+
+        function openDirectSaleModal(buyerName, pricePerKg) {
+            const modal = document.getElementById('modal-container');
+            modal.classList.remove('hidden');
+            const currentLand = state.user.lands.find(l => l.id === state.user.selectedLandId) || state.user.lands[0];
+            const estRevenue = currentLand.estYieldTon * 1000 * pricePerKg;
+
+            modal.innerHTML = `
+                <div class="bg-white w-full sm:max-w-md rounded-t-[32px] sm:rounded-3xl p-6 shadow-2xl space-y-4 animate-slideUp">
+                    <div class="flex justify-between items-center">
+                        <span class="bg-emerald-100 text-[#14532D] text-xs font-bold px-3 py-1 rounded-full">${state.lang === 'id' ? 'Penjualan Digital Presisi' : 'Adol Langsung Digital'}</span>
+                        <button onclick="closeModal()" class="w-8 h-8 rounded-full bg-gray-100 text-gray-600 flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button>
+                    </div>
+
+                    <h3 class="text-base font-bold text-gray-900">${state.lang === 'id' ? 'Kontrak Penjualan Digital' : 'Sarujuk Adol Digital'}</h3>
+                    
+                    <div class="p-4 bg-emerald-50 rounded-2xl border border-emerald-200 text-xs space-y-2">
+                        <div class="flex justify-between"><span>Pembeli Resmi:</span> <strong>${buyerName}</strong></div>
+                        <div class="flex justify-between"><span>Lahan Terpilih:</span> <strong>${currentLand.name}</strong></div>
+                        <div class="flex justify-between"><span>Patokan Harga Wajar:</span> <strong class="text-emerald-800">Rp${pricePerKg.toLocaleString('id-ID')}/kg</strong></div>
+                        <div class="flex justify-between"><span>Estimasi Tonase Lahan:</span> <strong>${currentLand.estYieldTon} Ton</strong></div>
+                        <div class="flex justify-between pt-2 border-t border-emerald-200 font-bold text-sm">
+                            <span>Estimasi Total Pendapatan:</span>
+                            <strong class="text-[#14532D]">Rp${estRevenue.toLocaleString('id-ID')}</strong>
+                        </div>
+                    </div>
+
+                    <button onclick="submitDirectSale()" class="w-full bg-[#15803D] text-white font-bold py-3.5 rounded-2xl text-sm shadow">${state.lang === 'id' ? 'Kirim Kontrak Penjualan Digital' : 'Kirim Kesepakatan Adol Digital'}</button>
+                </div>
+            `;
+        }
+
+        function submitDirectSale() {
+            closeModal();
+            showToast(state.lang === 'id' ? 'Kontrak Penjualan dikirim! Konfirmasi dikirim via WA.' : 'Kesepakatan dikirim! Wara-wara dikirim liwat WA.');
+        }
+
+        function openNotifSettingsModal() {
+            const modal = document.getElementById('modal-container');
+            modal.classList.remove('hidden');
+            modal.innerHTML = `
+                <div class="bg-white w-full sm:max-w-md rounded-t-[32px] sm:rounded-3xl p-6 shadow-2xl space-y-4 animate-slideUp">
+                    <div class="flex justify-between items-center">
+                        <span class="bg-emerald-100 text-[#14532D] text-xs font-bold px-3 py-1 rounded-full"><i class="fa-solid fa-bell mr-1"></i> Notifikasi WA & SMS</span>
+                        <button onclick="closeModal()" class="w-8 h-8 rounded-full bg-gray-100 text-gray-600 flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button>
+                    </div>
+
+                    <h3 class="text-base font-bold text-gray-900">${state.lang === 'id' ? 'Layanan Informasi Harian Petani' : 'Layanan Informasi Harian Kanggo Petani'}</h3>
+
+                    <div class="space-y-3.5 text-xs">
+                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-2xl border border-gray-100">
+                            <div>
+                                <div class="font-bold text-gray-900 flex items-center gap-1.5"><i class="fa-brands fa-whatsapp text-emerald-600"></i> Laporan Harga via WA</div>
+                                <div class="text-[10px] text-gray-500">Dikirim tiap jam 07.00 Pagi</div>
+                            </div>
+                            <input type="checkbox" ${state.user.notifications.waHarga ? 'checked' : ''} onchange="toggleNotifKey('waHarga')" class="w-5 h-5 text-emerald-600 rounded">
+                        </div>
+
+                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-2xl border border-gray-100">
+                            <div>
+                                <div class="font-bold text-gray-900 flex items-center gap-1.5"><i class="fa-solid fa-comment-sms text-amber-600"></i> Peringatan Darurat via SMS</div>
+                                <div class="text-[10px] text-gray-500">SMS Otomatis saat ada perubahan harga drastis</div>
+                            </div>
+                            <input type="checkbox" ${state.user.notifications.smsHarga ? 'checked' : ''} onchange="toggleNotifKey('smsHarga')" class="w-5 h-5 text-emerald-600 rounded">
+                        </div>
+                    </div>
+
+                    <button onclick="closeModal(); showToast('Pengaturan notifikasi WA & SMS disimpan!');" class="w-full bg-[#15803D] text-white font-bold py-3 rounded-2xl text-xs shadow">Simpan Pengaturan</button>
+                </div>
+            `;
+        }
+
+        function toggleNotifKey(key) {
+            state.user.notifications[key] = !state.user.notifications[key];
+            showToast(`Status Notifikasi ${key} diperbarui`);
+        }
+
+        function openFutureResearchModal() {
+            const modal = document.getElementById('modal-container');
+            modal.classList.remove('hidden');
+            modal.innerHTML = `
+                <div class="bg-white w-full sm:max-w-md rounded-t-[32px] sm:rounded-3xl p-6 shadow-2xl space-y-4 animate-slideUp">
+                    <div class="flex justify-between items-center">
+                        <span class="bg-amber-100 text-amber-900 text-xs font-bold px-3 py-1 rounded-full"><i class="fa-solid fa-flask mr-1"></i> Riset & Fitur Masa Depan</span>
+                        <button onclick="closeModal()" class="w-8 h-8 rounded-full bg-gray-100 text-gray-600 flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button>
+                    </div>
+
+                    <h3 class="text-base font-bold text-gray-900">#KomunitasSiapEkspor & Presisi Lanjutan</h3>
+                    <p class="text-xs text-gray-600 leading-relaxed">NusaTani terus dikembangkan untuk mendukung ekspansi pasar ekspor dan pemantauan lingkungan berkelanjutan.</p>
+
+                    <div class="p-4 bg-amber-50 rounded-2xl border border-amber-200 text-xs space-y-2">
+                        <div class="font-bold text-amber-900">Fitur Pengembangan Lanjutan:</div>
+                        <ul class="list-disc list-inside space-y-1 text-gray-700 text-[11px]">
+                            <li>Standar Mutu Kadar Air Ekspor Komoditas Pangan</li>
+                            <li>Sertifikat Karbon Sawah Ramah Lingkungan</li>
+                            <li>Konsolidator Logistik Antar-Pulau Tanpa Perantara</li>
+                        </ul>
+                    </div>
+
+                    <button onclick="closeModal(); showToast('Anda terdaftar dalam program riset lanjutan NusaTani!');" class="w-full bg-amber-600 text-white font-bold py-3.5 rounded-2xl text-xs shadow">Bergabung dengan Program Riset</button>
+                </div>
+            `;
+        }
+
+        function openTanyaNusaTani() {
+            const modal = document.getElementById('modal-container');
+            modal.classList.remove('hidden');
+            renderChatUI();
+        }
+
+        function renderChatUI() {
+            const modal = document.getElementById('modal-container');
+            const t = i18n[state.lang];
+
+            modal.innerHTML = `
+                <div class="bg-white w-full sm:max-w-md rounded-t-[32px] sm:rounded-3xl shadow-2xl flex flex-col h-[85vh] sm:h-[650px] overflow-hidden animate-slideUp">
+                    <div class="bg-[#14532D] text-white px-5 py-4 flex justify-between items-center shrink-0">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-10 h-10 rounded-full bg-emerald-600/60 flex items-center justify-center text-xl">🤖</div>
+                            <div>
+                                <h3 class="font-bold text-sm">${state.lang === 'id' ? 'AI Pendamping NusaTani' : 'AI Pendamping NusaTani Jawa'}</h3>
+                                <p class="text-[10px] text-emerald-300">Sistem Presisi 4 Modul</p>
+                            </div>
+                        </div>
+                        <button onclick="closeModal()" class="w-8 h-8 rounded-full bg-white/10 text-white flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button>
+                    </div>
+
+                    <div id="chat-messages-scroll" class="flex-1 p-4 overflow-y-auto space-y-3 bg-gray-50">
+                        ${state.chatMessages.map(msg => `
+                            <div class="flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}">
+                                <div class="max-w-[85%] p-3.5 rounded-2xl text-xs leading-relaxed ${msg.sender === 'user' ? 'bg-[#15803D] text-white rounded-tr-none shadow-sm' : 'bg-white text-gray-800 rounded-tl-none border border-gray-100 shadow-sm'}">
+                                    ${msg.text}
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+
+                    <div class="p-3 bg-white border-t border-gray-100 flex items-center space-x-2 shrink-0">
+                        <input type="text" id="chat-input" placeholder="${t.aiPlaceholder}" class="flex-1 px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl text-xs focus:ring-2 focus:ring-[#15803D] focus:outline-none">
+                        <button onclick="sendChatMessage()" class="w-11 h-11 bg-[#15803D] text-white rounded-2xl flex items-center justify-center shrink-0 hover:bg-[#166534]"><i class="fa-solid fa-paper-plane text-xs"></i></button>
+                    </div>
+                </div>
+            `;
+            const scroll = document.getElementById('chat-messages-scroll');
+            if (scroll) scroll.scrollTop = scroll.scrollHeight;
+        }
+
+        function sendChatMessage() {
+            const input = document.getElementById('chat-input');
+            const txt = input.value.trim();
+            if (!txt) return;
+
+            state.chatMessages.push({ sender: 'user', text: txt });
+            input.value = '';
+            renderChatUI();
+
+            setTimeout(() => {
+                let reply = state.lang === 'id'
+                    ? `Pak ${state.user.name}, berdasarkan analisis NusaTani: Kelayakan Modal Anda (${state.user.creditScoreValue}) siap diajukan via WhatsApp ke BUMDes/Bank Tani, Uji kadar air gabah aman dari potongan sepihak, dan prediksi harga menyarankan tahan stok 3 hari lagi.`
+                    : `Pak ${state.user.name}, adhedhasar analisis NusaTani: Bijian Modal Sampeyan (${state.user.creditScoreValue}) siap diajokne liwat WhatsApp menyang BUMDes/Bank Tani, Uji banyu gabah aman saka suda timbangan, lan prediksi rega nyaranake simpen stok 3 dina maneh.`;
+                state.chatMessages.push({ sender: 'ai', text: reply });
+                renderChatUI();
+            }, 800);
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('modal-container');
+            modal.classList.add('hidden');
+            modal.innerHTML = '';
+        }
+
+        function showToast(msg) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = "bg-[#14532D] text-white px-4 py-3 rounded-2xl shadow-xl text-xs font-semibold flex items-center space-x-2 animate-fadeIn pointer-events-auto border border-emerald-400/30";
+            toast.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-400"></i><span>${msg}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
